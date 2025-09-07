@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etkinlikler</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Etkinlikler sayfası özel stilleri */
+        .page-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .filters {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filters label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        #clubFilter {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            min-width: 200px;
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+        
+        .etkinlik-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            padding: 0;
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .etkinlik-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .etkinlik-header {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+            color: white;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .etkinlik-title {
+            font-size: 1.3rem;
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+        
+        .etkinlik-date {
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+        
+        .etkinlik-date i {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .etkinlik-content {
+            padding: 20px;
+        }
+        
+        .etkinlik-description {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .etkinlik-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f1f1f1;
+        }
+        
+        .etkinlik-club {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .etkinlik-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .etkinlik-btn {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .etkinlik-btn i {
+            margin-right: 5px;
+        }
+        
+        .etkinlik-btn:hover {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .etkinlik-status {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-upcoming {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .status-passed {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+            grid-column: 1 / -1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .error {
+            color: #e74c3c;
+            background-color: #fdf0ed;
+        }
+        
+        .empty {
+            color: #7f8c8d;
+            background-color: #f9f9f9;
+        }
+        
+        /* Kulüp renkleri için örnek stiller */
+        .club-teknoloji .etkinlik-header {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+        
+        .club-teknoloji .etkinlik-club {
+            background-color: #9b59b6;
+        }
+        
+        .club-spor .etkinlik-header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .club-spor .etkinlik-club {
+            background-color: #e74c3c;
+        }
+        
+        .club-sanat .etkinlik-header {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .club-sanat .etkinlik-club {
+            background-color: #f39c12;
+        }
+        
+        .club-egitim .etkinlik-header {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .club-egitim .etkinlik-club {
+            background-color: #27ae60;
+        }
+        
+        /* Responsive tasarım */
+        @media (max-width: 768px) {
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filters label {
+                margin-bottom: 8px;
+            }
+            
+            #clubFilter {
+                width: 100%;
+            }
+            
+            .etkinlik-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .etkinlik-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header içeriği buraya eklenecek -->
+    <div id="header-container"></div>
+
+    <main class="page-content">
+        <h1>Etkinlikler</h1>
+
+        <div class="filters">
+            <label for="clubFilter">Kulüp:</label>
+            <select id="clubFilter">
+                <option value="all">Tümü</option>
+            </select>
+        </div>
+
+        <div id="events-container" class="events-grid">
+            <p class="loading">Etkinlikler yükleniyor...</p>
+        </div>
+    </main>
+
+    <!-- Footer içeriği buraya eklenecek -->
+    <div id="footer-container"></div>
+
+    <script>
+        // Header ve Footer yükleme
+        document.addEventListener('DOMContentLoaded', function() {
+            // Header yükleme
+            fetch('../templates/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('header-container').innerHTML = data;
+                    // Nav linklerini güncelle - aktif sayfayı işaretle
+                    const currentPage = window.location.pathname.split('/').pop();
+                    const navLinks = document.querySelectorAll('.mt-menu a');
+                    
+                    navLinks.forEach(link => {
+                        const linkPage = link.getAttribute('href').split('/').pop();
+                        if (linkPage === currentPage || 
+                            (currentPage === '' && linkPage === 'index.html') ||
+                            (linkPage === 'etkinlikler.html' && currentPage.includes('etkinlikler.html'))) {
+                            link.style.fontWeight = 'bold';
+                            link.style.color = '#3498db';
+                        }
+                    });
+                })
+                .catch(error => console.error('Header yüklenemedi:', error));
+            
+            // Footer yükleme
+            fetch('../templates/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                })
+                .catch(error => console.error('Footer yüklenemedi:', error));
+
+            // Etkinlikleri yükleme ve işleme
+            const eventsContainer = document.getElementById('events-container');
+            const clubFilter = document.getElementById('clubFilter');
+
+            async function fetchEvents() {
+                try {
+                    const res = await fetch('http://127.0.0.1:8000/api/etkinlikler/');
+                    if (!res.ok) throw new Error('API yanıtı başarısız');
+                    const data = await res.json();
+                    console.log('API verisi:', data);
+                    return data;
+                } catch (error) {
+                    console.error('Etkinlikler yüklenemedi:', error);
+                    eventsContainer.innerHTML = '<p class="error">Etkinlikler yüklenirken bir hata oluştu.</p>';
+                    return [];
+                }
+            }
+
+            // Kulüp adına göre CSS sınıfı oluştur
+            function getClubClass(clubName) {
+                // Türkçe karakterleri ingilizce karşılıklarına çevir ve küçük harfe dönüştür
+                const normalized = clubName.toLowerCase()
+                    .replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u')
+                    .replace(/ş/g, 's')
+                    .replace(/ı/g, 'i')
+                    .replace(/ö/g, 'o')
+                    .replace(/ç/g, 'c')
+                    .replace(/[^a-z0-9]/g, '-');
+                
+                return `club-${normalized}`;
+            }
+
+            // Etkinlik durumunu belirle (geçmiş/gelecek)
+            function getEventStatus(eventDate) {
+                const now = new Date();
+                const eventDateObj = new Date(eventDate);
+                return eventDateObj > now ? 'upcoming' : 'passed';
+            }
+
+            async function renderEvents(filter = 'all') {
+                eventsContainer.innerHTML = '<p class="loading">Etkinlikler yükleniyor...</p>';
+                const etkinlikList = await fetchEvents();
+
+                eventsContainer.innerHTML = ''; // temizle
+
+                // API alan adlarını frontend objesine eşle
+                const mappedList = etkinlikList.map(e => ({
+                    id: e.id,
+                    title: e.baslik,
+                    description: e.aciklama,
+                    date: e.tarih,
+                    club: e.kulup_adi,
+                    clubClass: getClubClass(e.kulup_adi),
+                    status: getEventStatus(e.tarih)
+                }));
+
+                // Kulüp filter dropdown'ını dinamik doldur
+                const uniqueClubs = [...new Set(mappedList.map(e => e.club))];
+                clubFilter.innerHTML = '<option value="all">Tümü</option>';
+                uniqueClubs.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c;
+                    option.textContent = c;
+                    clubFilter.appendChild(option);
+                });
+
+                const filteredList = mappedList.filter(
+                    e => filter === 'all' || e.club === filter
+                );
+
+                if (filteredList.length === 0) {
+                    eventsContainer.innerHTML = '<p class="empty">Bu kulüpte etkinlik bulunamadı.</p>';
+                    return;
+                }
+
+                // Etkinlik kartlarını oluştur
+                filteredList.forEach(e => {
+                    const card = document.createElement('div');
+                    card.className = `etkinlik-card ${e.clubClass}`;
+                    
+                    const statusText = e.status === 'upcoming' ? 'Yaklaşan Etkinlik' : 'Geçmiş Etkinlik';
+                    
+                    card.innerHTML = `
+                        <div class="etkinlik-header">
+                            <span class="etkinlik-status status-${e.status}">${statusText}</span>
+                            <h3 class="etkinlik-title">${e.title}</h3>
+                            <div class="etkinlik-date">
+                                <i class="far fa-calendar-alt"></i>
+                                ${new Date(e.date).toLocaleDateString('tr-TR', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })}
+                            </div>
+                        </div>
+                        <div class="etkinlik-content">
+                            <p class="etkinlik-description">${e.description}</p>
+                            <div class="etkinlik-meta">
+                                <span class="etkinlik-club">${e.club}</span>
+                                <div class="etkinlik-actions">
+                                    <button class="etkinlik-btn"><i class="far fa-bookmark"></i> Kaydet</button>
+                                    <button class="etkinlik-btn"><i class="far fa-share-square"></i> Paylaş</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    eventsContainer.appendChild(card);
+                });
+            }
+
+            clubFilter.addEventListener('change', (e) => renderEvents(e.target.value));
+            renderEvents();
+        });
+    </script>
+</body>
+</html>

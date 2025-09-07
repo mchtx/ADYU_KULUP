@@ -1,0 +1,107 @@
+[
+  {
+    "model": "kulupler.kulup",
+    "pk": 1,
+    "fields": {
+      "ad": "Futbol Kulübü",
+      "kategori": "Spor",
+      "aciklama": "Kampüs içi futbol turnuvaları ve maç organizasyonları.",
+      "olusturulma_tarihi": "2025-09-05T21:17:58Z",
+      "yonetici": 1
+    }
+  },
+  {
+    "model": "kulupler.kulup",
+    "pk": 2,
+    "fields": {
+      "ad": "Sanat Kulübü",
+      "kategori": "Sanat",
+      "aciklama": "Resim, heykel, sergi ve atölye çalışmaları düzenleyen öğrenci kulübü.",
+      "olusturulma_tarihi": "2025-09-05T21:20:00Z",
+      "yonetici": 1
+    }
+  },
+  {
+    "model": "kulupler.kulup",
+    "pk": 3,
+    "fields": {
+      "ad": "Yazılım Kulübü",
+      "kategori": "Teknoloji",
+      "aciklama": "Yazılım geliştirme ve yeni teknolojiler üzerine projeler ve eğitimler düzenleyen kulüp.",
+      "olusturulma_tarihi": "2025-09-05T21:21:00Z",
+      "yonetici": 1
+    }
+  },
+  {
+    "model": "kulupler.kulup",
+    "pk": 4,
+    "fields": {
+      "ad": "Matematik Kulübü",
+      "kategori": "Eğitim",
+      "aciklama": "Matematik alanında seminerler, yarışmalar ve öğrenci destek etkinlikleri düzenleyen kulüp.",
+      "olusturulma_tarihi": "2025-09-05T21:22:00Z",
+      "yonetici": 1
+    }
+  },
+
+  {
+    "model": "etkinlikler.etkinlik",
+    "pk": 1,
+    "fields": {
+      "baslik": "Sezon Açılış Maçı",
+      "aciklama": "Futbol Kulübü’nün sezon açılış maçı.",
+      "tarih": "2025-09-10T17:00:00Z",
+      "olusturulma_tarihi": "2025-09-05T21:30:00Z",
+      "kulup": 1
+    }
+  },
+  {
+    "model": "etkinlikler.etkinlik",
+    "pk": 2,
+    "fields": {
+      "baslik": "Sonbahar Sergisi",
+      "aciklama": "Sanat Kulübü öğrencilerinin çalışmalarıyla karma sergi.",
+      "tarih": "2025-09-20T18:00:00Z",
+      "olusturulma_tarihi": "2025-09-05T21:31:00Z",
+      "kulup": 2
+    }
+  },
+  {
+    "model": "etkinlikler.etkinlik",
+    "pk": 3,
+    "fields": {
+      "baslik": "Hackathon",
+      "aciklama": "Yazılım Kulübü tarafından düzenlenen 24 saatlik kodlama maratonu.",
+      "tarih": "2025-10-01T09:00:00Z",
+      "olusturulma_tarihi": "2025-09-05T21:32:00Z",
+      "kulup": 3
+    }
+  },
+  {
+    "model": "etkinlikler.etkinlik",
+    "pk": 4,
+    "fields": {
+      "baslik": "Matematik Yarışması",
+      "aciklama": "Matematik Kulübü tarafından düzenlenen problem çözme yarışması.",
+      "tarih": "2025-10-05T14:00:00Z",
+      "olusturulma_tarihi": "2025-09-05T21:33:00Z",
+      "kulup": 4
+    }
+  },
+
+  { "model": "duyurular.duyuru", "pk": 1,  "fields": { "baslik": "Kupa Töreni", "icerik": "Geçen sezon şampiyonluk kupamız geliyor.", "yayin_tarihi": "2025-09-06T09:00:00Z", "kulup": 1 } },
+  { "model": "duyurular.duyuru", "pk": 2,  "fields": { "baslik": "Antrenman Programı", "icerik": "Haftalık antrenman programı yayınlandı.", "yayin_tarihi": "2025-09-07T09:00:00Z", "kulup": 1 } },
+  { "model": "duyurular.duyuru", "pk": 3,  "fields": { "baslik": "Yeni Forma Tanıtımı", "icerik": "Takımımızın yeni sezon formaları tanıtıldı.", "yayin_tarihi": "2025-09-08T09:00:00Z", "kulup": 1 } },
+
+  { "model": "duyurular.duyuru", "pk": 4,  "fields": { "baslik": "Sergi Hazırlıkları", "icerik": "Sergi kurulum görev dağılımı yayınlandı.", "yayin_tarihi": "2025-09-06T09:00:00Z", "kulup": 2 } },
+  { "model": "duyurular.duyuru", "pk": 5,  "fields": { "baslik": "Atölye Kayıtları", "icerik": "Resim ve heykel atölyeleri için kayıtlar başladı.", "yayin_tarihi": "2025-09-07T09:00:00Z", "kulup": 2 } },
+  { "model": "duyurular.duyuru", "pk": 6,  "fields": { "baslik": "Sergi Gönüllüleri", "icerik": "Sergi günü görev almak isteyenler formu doldursun.", "yayin_tarihi": "2025-09-08T09:00:00Z", "kulup": 2 } },
+
+  { "model": "duyurular.duyuru", "pk": 7,  "fields": { "baslik": "Hackathon Kayıtları", "icerik": "Hackathon için kayıtlar açıldı.", "yayin_tarihi": "2025-09-06T09:00:00Z", "kulup": 3 } },
+  { "model": "duyurular.duyuru", "pk": 8,  "fields": { "baslik": "Seminer Duyurusu", "icerik": "Yapay zekâ üzerine seminer düzenlenecek.", "yayin_tarihi": "2025-09-07T09:00:00Z", "kulup": 3 } },
+  { "model": "duyurular.duyuru", "pk": 9,  "fields": { "baslik": "Proje Grupları", "icerik": "Yeni dönem proje grupları oluşturuluyor.", "yayin_tarihi": "2025-09-08T09:00:00Z", "kulup": 3 } },
+
+  { "model": "duyurular.duyuru", "pk": 10, "fields": { "baslik": "Yarışma Başvuruları", "icerik": "Matematik yarışması için başvurular başladı.", "yayin_tarihi": "2025-09-06T09:00:00Z", "kulup": 4 } },
+  { "model": "duyurular.duyuru", "pk": 11, "fields": { "baslik": "Seminer Serisi", "icerik": "Haftalık matematik seminerleri başlıyor.", "yayin_tarihi": "2025-09-07T09:00:00Z", "kulup": 4 } },
+  { "model": "duyurular.duyuru", "pk": 12, "fields": { "baslik": "Çalışma Grupları", "icerik": "Matematik çalışma grupları oluşturuldu.", "yayin_tarihi": "2025-09-08T09:00:00Z", "kulup": 4 } }
+]

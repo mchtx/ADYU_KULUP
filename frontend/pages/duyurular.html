@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duyurular</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Duyurular sayfası özel stilleri */
+        .page-content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        
+        .filters {
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filters label {
+            margin-right: 10px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        #clubFilter {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            min-width: 200px;
+        }
+        
+        .announcements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .duyuru-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border-left: 4px solid #3498db;
+        }
+        
+        .duyuru-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .duyuru-title {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+        
+        .duyuru-description {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+        
+        .duyuru-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid #f1f1f1;
+            margin-top: auto;
+        }
+        
+        .duyuru-club {
+            background-color: #3498db;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .duyuru-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .loading, .error, .empty {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1rem;
+            grid-column: 1 / -1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .error {
+            color: #e74c3c;
+            background-color: #fdf0ed;
+        }
+        
+        .empty {
+            color: #7f8c8d;
+            background-color: #f9f9f9;
+        }
+        
+        /* Kulüp renkleri için örnek stiller - dinamik olarak da eklenebilir */
+        .club-teknoloji {
+            border-left-color: #9b59b6 !important;
+        }
+        
+        .club-teknoloji .duyuru-club {
+            background-color: #9b59b6;
+        }
+        
+        .club-spor {
+            border-left-color: #e74c3c !important;
+        }
+        
+        .club-spor .duyuru-club {
+            background-color: #e74c3c;
+        }
+        
+        .club-sanat {
+            border-left-color: #f39c12 !important;
+        }
+        
+        .club-sanat .duyuru-club {
+            background-color: #f39c12;
+        }
+        
+        .club-egitim {
+            border-left-color: #27ae60 !important;
+        }
+        
+        .club-egitim .duyuru-club {
+            background-color: #27ae60;
+        }
+        
+        /* Responsive tasarım */
+        @media (max-width: 768px) {
+            .announcements-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .filters label {
+                margin-bottom: 8px;
+            }
+            
+            #clubFilter {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header içeriği buraya eklenecek -->
+    <div id="header-container"></div>
+
+    <main class="page-content">
+        <h1>Duyurular</h1>
+
+        <div class="filters">
+            <label for="clubFilter">Kulüp:</label>
+            <select id="clubFilter">
+                <option value="all">Tümü</option>
+            </select>
+        </div>
+
+        <div id="announcements-container" class="announcements-grid">
+            <p class="loading">Duyurular yükleniyor...</p>
+        </div>
+    </main>
+
+    <!-- Footer içeriği buraya eklenecek -->
+    <div id="footer-container"></div>
+
+    <script>
+        // Header ve Footer yükleme
+        document.addEventListener('DOMContentLoaded', function() {
+            // Header yükleme
+            fetch('../templates/header.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('header-container').innerHTML = data;
+                    // Nav linklerini güncelle - aktif sayfayı işaretle
+                    const currentPage = window.location.pathname.split('/').pop();
+                    const navLinks = document.querySelectorAll('.mt-menu a');
+                    
+                    navLinks.forEach(link => {
+                        const linkPage = link.getAttribute('href').split('/').pop();
+                        if (linkPage === currentPage || 
+                            (currentPage === '' && linkPage === 'index.html') ||
+                            (linkPage === 'duyurular.html' && currentPage.includes('duyurular.html'))) {
+                            link.style.fontWeight = 'bold';
+                            link.style.color = '#3498db';
+                        }
+                    });
+                })
+                .catch(error => console.error('Header yüklenemedi:', error));
+            
+            // Footer yükleme
+            fetch('../templates/footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('footer-container').innerHTML = data;
+                })
+                .catch(error => console.error('Footer yüklenemedi:', error));
+
+            // Duyuruları yükleme ve işleme
+            const announcementsContainer = document.getElementById('announcements-container');
+            const clubFilter = document.getElementById('clubFilter');
+
+            async function fetchAnnouncements() {
+                try {
+                    const res = await fetch('http://127.0.0.1:8000/api/duyurular/');
+                    if (!res.ok) throw new Error('API yanıtı başarısız');
+                    const data = await res.json();
+                    console.log('API verisi:', data);
+                    return data;
+                } catch (error) {
+                    console.error('Duyurular yüklenemedi:', error);
+                    announcementsContainer.innerHTML = '<p class="error">Duyurular yüklenirken bir hata oluştu.</p>';
+                    return [];
+                }
+            }
+
+            // Kulüp adına göre CSS sınıfı oluştur
+            function getClubClass(clubName) {
+                // Türkçe karakterleri ingilizce karşılıklarına çevir ve küçük harfe dönüştür
+                const normalized = clubName.toLowerCase()
+                    .replace(/ğ/g, 'g')
+                    .replace(/ü/g, 'u')
+                    .replace(/ş/g, 's')
+                    .replace(/ı/g, 'i')
+                    .replace(/ö/g, 'o')
+                    .replace(/ç/g, 'c')
+                    .replace(/[^a-z0-9]/g, '-');
+                
+                return `club-${normalized}`;
+            }
+
+            async function renderAnnouncements(filter = 'all') {
+                announcementsContainer.innerHTML = '<p class="loading">Duyurular yükleniyor...</p>';
+                const duyuruList = await fetchAnnouncements();
+
+                announcementsContainer.innerHTML = ''; // temizle
+
+                // API alan adlarını frontend objesine eşle
+                const mappedList = duyuruList.map(d => ({
+                    id: d.id,
+                    title: d.baslik,
+                    description: d.icerik,
+                    date: d.yayin_tarihi,
+                    club: d.kulup_adi,
+                    clubClass: getClubClass(d.kulup_adi)
+                }));
+
+                // Dropdown'u dinamik doldur
+                const uniqueClubs = [...new Set(mappedList.map(d => d.club))];
+                clubFilter.innerHTML = '<option value="all">Tümü</option>';
+                uniqueClubs.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c;
+                    option.textContent = c;
+                    clubFilter.appendChild(option);
+                });
+
+                const filteredList = mappedList.filter(
+                    d => filter === 'all' || d.club === filter
+                );
+
+                if (filteredList.length === 0) {
+                    announcementsContainer.innerHTML = '<p class="empty">Bu kulüpte duyuru bulunamadı.</p>';
+                    return;
+                }
+
+                // Duyuru kartlarını oluştur
+                filteredList.forEach(d => {
+                    const card = document.createElement('div');
+                    card.className = `duyuru-card ${d.clubClass}`;
+                    card.innerHTML = `
+                        <h3 class="duyuru-title">${d.title}</h3>
+                        <p class="duyuru-description">${d.description}</p>
+                        <div class="duyuru-meta">
+                            <span class="duyuru-club">${d.club}</span>
+                            <span class="duyuru-date">${new Date(d.date).toLocaleDateString('tr-TR', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}</span>
+                        </div>
+                    `;
+                    announcementsContainer.appendChild(card);
+                });
+            }
+
+            clubFilter.addEventListener('change', (e) => renderAnnouncements(e.target.value));
+            renderAnnouncements();
+        });
+    </script>
+</body>
+</html>

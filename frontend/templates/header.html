@@ -1,0 +1,91 @@
+<header class="p-relative">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Logout ve navbar için görünür buton stilleri -->
+  <style>
+    .menu-wrapper { display:flex; gap:10px; align-items:center; }
+
+    /* Klasik, görünür kırmızı logout butonu */
+    .logout-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #c82333;
+      background:#dc3545;            /* kırmızı */
+      color:#fff;                    /* kontrast */
+      font-weight:600;
+      cursor:pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+      transition: background .15s ease, transform .05s ease, box-shadow .15s ease;
+    }
+    .logout-btn i { font-size:14px; }
+    .logout-btn:hover { background:#c82333; }
+    .logout-btn:active { transform: translateY(1px); }
+    .logout-btn:focus { outline:2px solid #ffd1d6; outline-offset:2px; }
+
+    /* Profil butonu: sade, gri */
+    .profile-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #d0d7de;
+      background:#f6f8fa;
+      color:#2c3e50;
+      text-decoration:none;
+      font-weight:600;
+      transition: background .15s ease, box-shadow .15s ease;
+    }
+    .profile-btn:hover { background:#eef1f4; }
+    .profile-btn:focus { outline:2px solid #bcd4ff; outline-offset:2px; }
+  </style>
+
+  <div class="header-wrapper">
+    <h1 class="site-title">
+      <a href="/tr" title="ADIYAMAN ÜNİVERSİTESİ">
+        <span id="logo">
+          <img src="https://static.adiyaman.edu.tr/files/1/logo/adyu-logo-white-v2.png" alt="Adıyaman Üniversitesi Logo">
+        </span>
+        <span id="title">
+          ADIYAMAN ÜNİVERSİTESİ
+          <span id="slogan">Bilimle Yüksel, Geleceğe Yön Ver!</span>
+        </span>
+      </a>
+    </h1>
+
+    <div class="top-menu">
+      <div class="items-wrapper">
+        <ul class="items">
+          <li>
+            <a href="https://birfikrimvar.adiyaman.edu.tr" target="_blank" title="Bir Fikrim Var!">Bir Fikrim Var!</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="menu-wrapper">
+        <!-- Profil -->
+        <a href="/frontend/pages/profil.html" class="profile-btn">
+          <i class="fas fa-user-circle"></i> Profil
+        </a>
+
+        <!-- Çıkış (ikon: right-from-bracket) -->
+        <button type="button" class="logout-btn" data-logout aria-label="Çıkış yap">
+          <i class="fas fa-right-from-bracket"></i> Çıkış
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="row loaded visible">
+      <div class="column col-12 open">
+        <ul class="mt-menu">
+          <li><a href="/frontend/index.html">Kulüp Sistemine Hoş Geldiniz</a></li>
+          <li><a href="/frontend/pages/kulupler.html">Kulüpler</a></li>
+          <li><a href="/frontend/pages/etkinlikler.html">Etkinlikler</a></li>
+          <li><a href="/frontend/pages/duyurular.html">Duyurular</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

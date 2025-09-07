@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    .page-content { max-width:900px; margin:20px auto; padding:0 20px; }
+    #profileForm { display:grid; gap:10px; background:#fff; padding:16px; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,.06); }
+    #profileForm input { padding:10px; border:1px solid #ddd; border-radius:8px; }
+    #profileForm button { padding:10px 12px; border:none; background:#3498db; color:#fff; border-radius:8px; cursor:pointer; font-weight:600; }
+    #profileForm button:hover { background:#2980b9; }
+    .user-clubs { margin-top:24px; }
+    .user-clubs .my-club-item { display:flex; align-items:center; justify-content:space-between; background:#fff; padding:12px 14px; border-radius:10px; box-shadow:0 1px 8px rgba(0,0,0,.06); margin-bottom:10px; }
+    .user-clubs .btn { padding:7px 10px; border-radius:8px; border:1px solid #ddd; background:#f8f9fa; cursor:pointer; }
+    .user-clubs .btn:hover { background:#e9ecef; }
+    .warn { color:#b00; margin:8px 0; }
+    .chip { display:inline-flex; align-items:center; gap:6px; background:#eef6ff; color:#1f6fd9; border:1px solid #d8e8ff; padding:4px 8px; border-radius:999px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div id="header-container"></div>
+
+  <main class="page-content">
+    <h1>Kullanıcı Profili</h1>
+
+    <div id="profile-warn" class="warn" style="display:none"></div>
+
+    <form id="profileForm">
+      <label>Ad Soyad:</label>
+      <input type="text" id="name" placeholder="Ad Soyad"/>
+      <label>E-posta:</label>
+      <input type="email" id="email" placeholder="eposta@ornek.com"/>
+      <button type="submit">Güncelle</button>
+    </form>
+
+    <section class="user-clubs">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <h2>Katıldığım Kulüpler</h2>
+        <span id="clubCount" class="chip"><i class="fas fa-users"></i> <b id="clubCountNum">0</b> kulüp</span>
+      </div>
+      <div id="user-clubs-list"></div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer-container"></div>
+
+  <script>
+    /* ==== API HELPERS ==== */
+    const API_BASE = "http://127.0.0.1:8000/api";
+    const getToken = () => localStorage.getItem("access_token") || "";
+    async function api(path, { method="GET", headers={}, body } = {}) {
+      const h = { "Content-Type":"application/json", ...headers };
+      const t = getToken(); if (t) h.Authorization = "Bearer " + t;
+      const res = await fetch(API_BASE + path, { method, headers:h, body: body? JSON.stringify(body): undefined });
+      let j=null; try{ j=await res.json() }catch(_){}
+      if(!res.ok) throw new Error((j && (j.detail||j.error)) || res.statusText);
+      return j;
+    }
+    async function requireLogin() {
+      if (getToken()) return true;
+      const go = confirm("Bu sayfa için giriş gerekli. Giriş sayfasına gidelim mi?");
+      if (!go) return false;
+      window.location.href = "giris.html";
+      return false;
+    }
+
+    /* ==== HEADER/FOOTER ==== */
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Header
+      fetch('../templates/header.html')
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById('header-container').innerHTML = html;
+          const currentPage = window.location.pathname.split('/').pop();
+          const navLinks = document.querySelectorAll('.mt-menu a');
+          navLinks.forEach(link => {
+            const linkPage = link.getAttribute('href').split('/').pop();
+            if (linkPage === currentPage ||
+                (currentPage === '' && linkPage === 'index.html') ||
+                (linkPage === 'profil.html' && currentPage.includes('profil.html'))) {
+              link.style.fontWeight = 'bold';
+              link.style.color = '#3498db';
+            }
+          });
+        }).catch(console.error);
+
+      // Footer
+      fetch('../templates/footer.html')
+        .then(r => r.text())
+        .then(html => { document.getElementById('footer-container').innerHTML = html; })
+        .catch(console.error);
+
+      /* ==== PROFİL VERİLERİ ==== */
+      const ok = await requireLogin();
+      const warn = document.getElementById('profile-warn');
+      if (!ok) {
+        warn.style.display = 'block';
+        warn.textContent = 'Profil bilgileri için lütfen giriş yapın.';
+        return;
+      }
+
+      // ME çek
+      try {
+        const me = await api('/kullanicilar/me/');
+        document.getElementById('name').value = [me.first_name||'', me.last_name||''].filter(Boolean).join(' ');
+        document.getElementById('email').value = me.email || '';
+      } catch(e) {
+        warn.style.display = 'block';
+        warn.textContent = 'Profil alınamadı: ' + e.message;
+      }
+
+      // Profil güncelle
+      const form = document.getElementById('profileForm');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const full = (document.getElementById('name').value || '').trim();
+          const email = (document.getElementById('email').value || '').trim();
+          const parts = full.split(' ').filter(Boolean);
+          const first_name = parts.slice(0, -1).join(' ') || parts[0] || '';
+          const last_name = parts.length > 1 ? parts[parts.length - 1] : '';
+
+          await api('/kullanicilar/me/', {
+            method: 'PATCH',
+            body: { first_name, last_name, email }
+          });
+          alert('Bilgiler güncellendi.');
+        } catch (err) {
+          alert('Güncelleme hatası: ' + err.message);
+        }
+      });
+
+      // Katıldığım kulüpler
+      const listEl = document.getElementById('user-clubs-list');
+      const countEl = document.getElementById('clubCountNum');
+
+      async function loadMyClubs() {
+        listEl.innerHTML = '<div class="my-club-item">Yükleniyor...</div>';
+        try {
+          const items = await api('/kullanicilar/me/kulupler/');
+          if (!Array.isArray(items) || items.length === 0) {
+            countEl.textContent = '0';
+            listEl.innerHTML = '<div class="my-club-item">Henüz bir kulübe katılmadınız.</div>';
+            return;
+          }
+          countEl.textContent = items.length.toString();
+          listEl.innerHTML = '';
+          items.forEach(m => {
+            const row = document.createElement('div');
+            row.className = 'my-club-item';
+            const clubName = m.kulup_adi || m.ad || ('Kulüp #' + (m.kulup || m.id));
+            const clubId = m.kulup || m.id;
+            row.innerHTML = `
+              <span class="my-club-name"><i class="fas fa-users" style="color:#3498db;margin-right:6px;"></i>${clubName}</span>
+              <div style="display:flex; gap:8px;">
+                <a class="btn" href="kulupler.html" title="Kulüp kartlarına dön">Kartları Gör</a>
+                <button class="btn" data-leave="${clubId}">Ayrıl</button>
+              </div>
+            `;
+            listEl.appendChild(row);
+          });
+          // Ayrıl
+          listEl.querySelectorAll('[data-leave]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              const cid = btn.getAttribute('data-leave');
+              if (!confirm('Bu kulüpten ayrılmak istiyor musun?')) return;
+              try {
+                await api(`/uyelikler/leave/${cid}/`, { method:'DELETE' });
+                await loadMyClubs();
+                alert('Kulüpten ayrıldın.');
+              } catch (e) { alert('Ayrılma hatası: ' + e.message); }
+            });
+          });
+        } catch (e) {
+          listEl.innerHTML = '<div class="my-club-item">Hata: '+ e.message +'</div>';
+        }
+      }
+      await loadMyClubs();
+    });
+  </script>
+</body>
+</html>

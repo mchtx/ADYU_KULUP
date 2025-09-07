@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Adıyaman Üniversitesi - Kulüp Sistemi</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .main-content { max-width:1100px; margin:24px auto; padding:0 16px; }
+    .page-title { font-size:28px; margin-bottom:10px; }
+    .welcome-text { color:#555; margin-bottom:20px; }
+    .dashboard { display:grid; gap:22px; }
+    .shortcuts { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:18px; }
+    .shortcut-card { background:#fff; border-radius:12px; padding:16px; box-shadow:0 5px 20px rgba(0,0,0,.06); display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .shortcut-card i { font-size:24px; color:#3498db; }
+    .shortcut-card a { text-decoration:none; color:#2c3e50; font-weight:600; }
+    .upcoming-events, .latest-announcements { background:#fff; border-radius:12px; padding:16px; box-shadow:0 5px 20px rgba(0,0,0,.06); }
+    .upcoming-events h2, .latest-announcements h2 { font-size:20px; margin:0 0 10px; }
+    .event-item, .announcement-item { padding:10px 0; border-bottom:1px solid #f0f0f0; }
+    .event-item:last-child, .announcement-item:last-child { border-bottom:none; }
+    .event-title, .announcement-title { font-weight:600; }
+    .event-date, .announcement-date { color:#777; font-size:14px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div id="header-container"></div>
+
+  <div class="main-content">
+    <h1 class="page-title">Genç Sosyale Hoş Geldiniz</h1>
+    <p class="welcome-text">Kulüplere katıl, etkinliklere göz at, duyuruları takip et.</p>
+
+    <div class="dashboard">
+      <!-- Kısayollar -->
+      <section class="shortcuts">
+        <div class="shortcut-card">
+          <i class="fas fa-users"></i>
+          <a href="pages/kulupler.html">Kulüpler</a>
+        </div>
+        <div class="shortcut-card">
+          <i class="fas fa-calendar-alt"></i>
+          <a href="pages/etkinlikler.html">Etkinlikler</a>
+        </div>
+        <div class="shortcut-card">
+          <i class="fas fa-bullhorn"></i>
+          <a href="pages/duyurular.html">Duyurular</a>
+        </div>
+        <div class="shortcut-card">
+          <i class="fas fa-user-circle"></i>
+          <a href="pages/profil.html">Profil</a>
+        </div>
+      </section>
+
+      <!-- Yaklaşan Etkinlikler -->
+      <section class="upcoming-events">
+        <h2><i class="fas fa-calendar-day"></i> Yaklaşan Etkinlikler</h2>
+        <div class="event-item"><div class="event-title">Teknoloji Günleri</div><div class="event-date">15 Ekim 2023, 13:00 - Kampüs Merkez Alan</div></div>
+        <div class="event-item"><div class="event-title">Müzik Kulübü Konseri</div><div class="event-date">20 Ekim 2023, 19:00 - Kültür Merkezi</div></div>
+        <div class="event-item"><div class="event-title">Satranç Turnuvası</div><div class="event-date">25 Ekim 2023, 10:00 - Öğrenci Merkezi</div></div>
+      </section>
+
+      <!-- Güncel Duyurular -->
+      <section class="latest-announcements">
+        <h2><i class="fas fa-bullhorn"></i> Güncel Duyurular</h2>
+        <div class="announcement-item"><div class="announcement-title">Yeni Kulüp Başvuruları Başladı</div><div class="announcement-date">5 Ekim 2023</div></div>
+        <div class="announcement-item"><div class="announcement-title">Kulüp Lider Eğitim Programı</div><div class="announcement-date">3 Ekim 2023</div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div id="footer-container"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const LOGIN_URL = "/frontend/pages/giris.html";
+      const API_BASE  = "http://127.0.0.1:8000/api";
+
+      // Header
+      try {
+        const html = await fetch('templates/header.html').then(r=>r.text());
+        document.getElementById('header-container').innerHTML = html;
+
+        // Aktif menü vurgusu
+        const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+        document.querySelectorAll('.mt-menu a').forEach(link => {
+          const linkPage = link.getAttribute('href').split('/').pop();
+          if (linkPage === currentPage) {
+            link.style.fontWeight = 'bold';
+            link.style.color = '#3498db';
+          }
+        });
+
+        // LOGOUT bağlama
+        wireLogoutButtons();
+
+      } catch(e){ console.error(e); }
+
+      // Footer
+      try {
+        const html = await fetch('templates/footer.html').then(r=>r.text());
+        document.getElementById('footer-container').innerHTML = html;
+      } catch(e){ console.error(e); }
+
+      // ---- Helpers ----
+      function getAccess(){ return localStorage.getItem('access_token') || ""; }
+      function getRefresh(){ return localStorage.getItem('refresh_token') || ""; }
+      function clearTokens(){ localStorage.removeItem('access_token'); localStorage.removeItem('refresh_token'); }
+
+      async function tryBackendLogout() {
+        const candidates = ["/auth/logout/", "/auth/jwt/logout/", "/logout/"];
+        const token = getAccess();
+        for (const ep of candidates) {
+          try {
+            await fetch(API_BASE + ep, {
+              method: "POST",
+              headers: {
+                "Content-Type":"application/json",
+                "Accept":"application/json",
+                ...(token ? { "Authorization":"Bearer "+token } : {})
+              },
+              body: JSON.stringify({ refresh: getRefresh() })
+            });
+          } catch(_) { /* sessiz geç */ }
+        }
+      }
+
+      function wireLogoutButtons() {
+        const btns = document.querySelectorAll('[data-logout]');
+        btns.forEach(btn => {
+          btn.addEventListener('click', async () => {
+            try { await tryBackendLogout(); } catch(_) {}
+            clearTokens();
+            window.location.href = LOGIN_URL;
+          });
+        });
+      }
+
+      /* =====================
+         YAKLAŞAN ETKİNLİKLER (yapıyı bozmadan)
+      ====================== */
+      const upcomingSection = document.querySelector('.upcoming-events');
+
+      function formatDateTR(isoOrText) {
+        try {
+          const d = new Date(isoOrText);
+          if (isNaN(d.getTime())) return isoOrText;
+          return d.toLocaleString('tr-TR', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+        } catch { return isoOrText; }
+      }
+
+      async function fetchUpcomingEvents(limit=3) {
+        const endpoints = [
+          "/etkinlikler/?upcoming=1&limit="+limit,
+          "/etkinlikler/?limit="+limit,
+          "/events/?upcoming=1&limit="+limit,
+          "/events/?limit="+limit
+        ];
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(API_BASE + ep, { headers: { "Accept":"application/json" } });
+            const txt = await res.text();
+            let json = null; try { json = txt ? JSON.parse(txt) : null; } catch { continue; }
+            if (!res.ok || !json) continue;
+            const arr = Array.isArray(json) ? json : (Array.isArray(json.results) ? json.results : []);
+            if (arr.length) return arr.slice(0, limit);
+          } catch(_) {}
+        }
+        return [];
+      }
+
+      function mapEvent(e) {
+        const title = e.ad || e.baslik || e.title || "Etkinlik";
+        const loc   = e.konum || e.mekan || e.location || e.yer || "";
+        const rawDate = e.tarih || e.baslangic || e.start_time || e.date || e.datetime || null;
+        const f = rawDate ? formatDateTR(rawDate) : "";
+        const when = f ? (loc ? `${f} - ${loc}` : f) : (loc || "");
+        return { title, when };
+      }
+
+      function renderUpcoming(events) {
+        if (!upcomingSection) return;
+        const h2 = upcomingSection.querySelector('h2');
+        upcomingSection.querySelectorAll('.event-item').forEach(n => n.remove());
+        if (!events || !events.length) {
+          const empty = document.createElement('div');
+          empty.className = 'event-item';
+          empty.innerHTML = `<div class="event-title">Etkinlik bulunamadı</div><div class="event-date">Yakında eklenecek.</div>`;
+          upcomingSection.appendChild(empty);
+          return;
+        }
+        events.forEach(ev => {
+          const m = mapEvent(ev);
+          const item = document.createElement('div');
+          item.className = 'event-item';
+          item.innerHTML = `
+            <div class="event-title">${m.title}</div>
+            <div class="event-date">${m.when || ''}</div>
+          `;
+          upcomingSection.appendChild(item);
+        });
+        if (h2) upcomingSection.prepend(h2);
+      }
+
+      try {
+        const data = await fetchUpcomingEvents(3);
+        renderUpcoming(data);
+      } catch (e) {
+        console.warn("Yaklaşan etkinlikler yüklenemedi:", e);
+      }
+
+      /* =====================
+         GÜNCEL DUYURULAR (yapıyı bozmadan)
+         - .latest-announcements içindeki .announcement-item'ları yeniler.
+      ====================== */
+      const announcementsSection = document.querySelector('.latest-announcements');
+
+      function formatDateOnlyTR(isoOrText) {
+        try {
+          const d = new Date(isoOrText);
+          if (isNaN(d.getTime())) return isoOrText;
+          return d.toLocaleDateString('tr-TR', {
+            year: 'numeric', month: 'long', day: 'numeric'
+          });
+        } catch { return isoOrText; }
+      }
+
+      async function fetchAnnouncements(limit=5) {
+        const endpoints = [
+          "/duyurular/?ordering=-yayin_tarihi&limit="+limit,
+          "/duyurular/?limit="+limit,
+          "/announcements/?limit="+limit
+        ];
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(API_BASE + ep, { headers: { "Accept":"application/json" } });
+            const txt = await res.text();
+            let json = null; try { json = txt ? JSON.parse(txt) : null; } catch { continue; }
+            if (!res.ok || !json) continue;
+            const arr = Array.isArray(json) ? json : (Array.isArray(json.results) ? json.results : []);
+            if (arr.length) return arr.slice(0, limit);
+          } catch(_) {}
+        }
+        return [];
+      }
+
+      function mapAnnouncement(a) {
+        const title = a.baslik || a.title || "Duyuru";
+        const date  = a.yayin_tarihi || a.created_at || a.date || "";
+        return {
+          title,
+          dateText: date ? formatDateOnlyTR(date) : ""
+        };
+      }
+
+      function renderAnnouncements(list) {
+        if (!announcementsSection) return;
+        const h2 = announcementsSection.querySelector('h2');
+        announcementsSection.querySelectorAll('.announcement-item').forEach(n => n.remove());
+
+        if (!list || !list.length) {
+          const empty = document.createElement('div');
+          empty.className = 'announcement-item';
+          empty.innerHTML = `<div class="announcement-title">Duyuru bulunamadı</div><div class="announcement-date"></div>`;
+          announcementsSection.appendChild(empty);
+          return;
+        }
+
+        list.forEach(a => {
+          const m = mapAnnouncement(a);
+          const item = document.createElement('div');
+          item.className = 'announcement-item';
+          item.innerHTML = `
+            <div class="announcement-title">${m.title}</div>
+            <div class="announcement-date">${m.dateText}</div>
+          `;
+          announcementsSection.appendChild(item);
+        });
+
+        if (h2) announcementsSection.prepend(h2);
+      }
+
+      try {
+        const duyurular = await fetchAnnouncements(5);
+        renderAnnouncements(duyurular);
+      } catch (e) {
+        console.warn("Duyurular yüklenemedi:", e);
+      }
+    });
+  </script>
+</body>
+</html>

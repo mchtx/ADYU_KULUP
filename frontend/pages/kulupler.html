@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kulüpler</title>
+  <link rel="stylesheet" href="../style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    .page-content { max-width:1200px; margin:20px auto; padding:0 20px; }
+    .filters { background:#fff; padding:15px 20px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin:20px 0; display:flex; align-items:center; gap:10px; }
+    #category { padding:8px 12px; border:1px solid #ddd; border-radius:4px; min-width:200px; background:#fff; }
+    .clubs-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:25px; margin-top:20px; }
+    .kulup-card { background:#fff; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,.08); transition:.3s; overflow:hidden; display:flex; flex-direction:column; }
+    .kulup-card:hover { transform:translateY(-7px); box-shadow:0 12px 30px rgba(0,0,0,.15); }
+    .kulup-header { padding:25px 25px 15px; text-align:center; }
+    .kulup-icon { width:70px; height:70px; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:#fff; background:linear-gradient(135deg,#3498db,#2c3e50); }
+    .kulup-name { font-size:1.4rem; margin:0 0 8px; color:#2c3e50; font-weight:700; }
+    .kulup-category { display:inline-block; background:#e74c3c; color:#fff; padding:4px 12px; border-radius:15px; font-size:.85rem; font-weight:500; }
+    .kulup-content { padding:0 25px 20px; display:flex; flex-direction:column; flex:1; }
+    .kulup-description { color:#555; line-height:1.6; margin-bottom:20px; flex:1; }
+    .kulup-meta { padding-top:15px; border-top:1px solid #f1f1f1; }
+    .kulup-manager { display:flex; align-items:center; color:#7f8c8d; font-size:.95rem; }
+    .kulup-manager i { margin-right:8px; color:#3498db; }
+    .kulup-actions { display:flex; gap:10px; margin-top:15px; }
+    .kulup-btn { flex:1; background:#3498db; color:#fff; border:none; padding:10px; border-radius:6px; cursor:pointer; font-size:.95rem; transition:.2s; display:flex; align-items:center; justify-content:center; }
+    .kulup-btn i { margin-right:6px; }
+    .kulup-btn:hover { background:#2980b9; transform:translateY(-1px); }
+    .kulup-btn.secondary { background:#f8f9fa; color:#2c3e50; border:1px solid #ddd; }
+    .kulup-btn.secondary:hover { background:#e9ecef; }
+    .kulup-btn.joined { background:#2ecc71; cursor:default; }
+    .loading,.error,.empty { text-align:center; padding:40px; font-size:1.05rem; grid-column:1/-1; background:#fff; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+    .error { color:#e74c3c; background:#fdf0ed; white-space:pre-wrap; text-align:left; }
+    .empty { color:#7f8c8d; background:#f9f9f9; }
+    .category-spor .kulup-icon { background:linear-gradient(135deg,#e74c3c,#c0392b); }
+    .category-sanat .kulup-icon { background:linear-gradient(135deg,#f39c12,#e67e22); }
+    .category-teknoloji .kulup-icon { background:linear-gradient(135deg,#9b59b6,#8e44ad); }
+    .category-egitim .kulup-icon { background:linear-gradient(135deg,#27ae60,#229954); }
+    .icon-spor:before { content:"⚽"; }
+    .icon-sanat:before { content:"🎨"; }
+    .icon-teknoloji:before { content:"💻"; }
+    .icon-egitim:before { content:"📚"; }
+    .icon-genel:before { content:"👥"; }
+    @media (max-width:768px){
+      .clubs-grid { grid-template-columns:1fr; }
+      .filters { flex-direction:column; align-items:flex-start; }
+      .kulup-actions { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container"></div>
+
+  <main class="page-content">
+    <h1>Kulüpler</h1>
+
+    <div class="filters">
+      <label for="category">Kategori:</label>
+      <select id="category">
+        <option value="all">Tümü</option>
+        <option value="Spor">Spor</option>
+        <option value="Sanat">Sanat</option>
+        <option value="Teknoloji">Teknoloji</option>
+        <option value="Eğitim">Eğitim</option>
+      </select>
+    </div>
+
+    <div id="clubs-container" class="clubs-grid">
+      <p class="loading">Kulüpler yükleniyor...</p>
+    </div>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // ------------ Header/Footer -------------
+    try {
+      const headerHtml = await fetch('../templates/header.html').then(r => r.text());
+      document.getElementById('header-container').innerHTML = headerHtml;
+      const currentPage = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.mt-menu a').forEach(link => {
+        const linkPage = link.getAttribute('href').split('/').pop();
+        if (linkPage === currentPage ||
+            (currentPage === '' && linkPage === 'index.html') ||
+            (linkPage === 'kulupler.html' && currentPage.includes('kulupler.html'))) {
+          link.style.fontWeight = 'bold';
+          link.style.color = '#3498db';
+        }
+      });
+    } catch(e){ console.error('Header yüklenemedi:', e); }
+    try {
+      const footerHtml = await fetch('../templates/footer.html').then(r => r.text());
+      document.getElementById('footer-container').innerHTML = footerHtml;
+    } catch(e){ console.error('Footer yüklenemedi:', e); }
+
+    // ------------ API Helpers -------------
+    const API_BASE = "http://127.0.0.1:8000/api";
+    const clubsContainer = document.getElementById('clubs-container');
+    const categoryFilter = document.getElementById('category');
+
+    const getToken   = () => localStorage.getItem("access_token") || "";
+    const getRefresh = () => localStorage.getItem("refresh_token") || "";
+
+    function clearTokens() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
+
+    // Ortak API (isteğe göre auth gönderen/göndermeyen)
+    async function api(path, { method="GET", headers={}, body, useAuth=true } = {}) {
+      const h = { "Accept":"application/json", "Content-Type":"application/json", ...headers };
+      const token = getToken();
+
+      if (useAuth && token) h.Authorization = "Bearer " + token;
+
+      let res, text;
+      try {
+        res = await fetch(API_BASE + path, {
+          method, headers: h, body: body? JSON.stringify(body): undefined
+        });
+        text = await res.text();
+      } catch (netErr) {
+        console.error('[NET]', netErr);
+        throw new Error("Ağ/URL erişim hatası. " + netErr.message);
+      }
+
+      // JSON parse güvenli
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch(parseErr) {
+        throw new Error(`Beklenmeyen yanıt. Status ${res.status}\nGövde:\n${text}`);
+      }
+
+      // 401 ise refresh deneyelim (sadece auth isteklerinde)
+      if (useAuth && res.status === 401 && getRefresh()) {
+        const refreshed = await tryRefreshToken();
+        if (refreshed) return api(path, { method, headers, body, useAuth }); // tekrar dene
+        // refresh başarısız → tokenları sil
+        clearTokens();
+      }
+
+      if (!res.ok) {
+        const detail = (json && (json.detail || json.error)) || res.statusText;
+        throw new Error(`Status ${res.status} - ${detail}\nGövde:\n${text}`);
+      }
+      return json;
+    }
+
+    // Birkaç yaygın refresh endpointini sırayla dene
+    async function tryRefreshToken() {
+      const refresh = getRefresh();
+      if (!refresh) return false;
+
+      const candidates = [
+        "/auth/refresh/",
+        "/auth/jwt/refresh/",
+        "/token/refresh/"
+      ];
+
+      for (const ep of candidates) {
+        try {
+          const res = await fetch(API_BASE + ep, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Accept":"application/json" },
+            body: JSON.stringify({ refresh })
+          });
+          const txt = await res.text();
+          let j = null; try { j = txt ? JSON.parse(txt) : null; } catch(_){}
+          if (res.ok && j && (j.access || j.access_token)) {
+            const newAccess = j.access || j.access_token;
+            localStorage.setItem("access_token", newAccess);
+            return true;
+          }
+        } catch (_) { /* denemeye devam */ }
+      }
+      return false;
+    }
+
+    function getCategoryIcon(category) {
+      const map = { 'Spor':'spor', 'Sanat':'sanat', 'Teknoloji':'teknoloji', 'Eğitim':'egitim' };
+      return map[category] || 'genel';
+    }
+    function getCategoryClass(category) { return `category-${getCategoryIcon(category)}`; }
+
+    // Public: kulüp listesi (useAuth:false → expired token olsa bile header gitmez)
+    async function fetchClubs() {
+      const data = await api('/kulupler/', { useAuth:false });
+      return Array.isArray(data) ? data : (data?.results ?? []);
+    }
+
+    // Üyelik seti (opsiyonel)
+    async function fetchMyClubIds() {
+      const token = getToken();
+      if (!token) return new Set();
+      try {
+        const items = await api('/kullanicilar/me/kulupler/', { useAuth:true });
+        return new Set((Array.isArray(items) ? items : []).map(x => x.kulup ?? x.id));
+      } catch (e) {
+        console.warn('Üyelikler çekilemedi:', e.message);
+        return new Set();
+      }
+    }
+
+    async function joinClub(clubId, btn) {
+      const token = getToken();
+      if (!token) {
+        const go = confirm("Kulübe katılmak için giriş yapmalısın. Giriş sayfasına gidelim mi?");
+        if (go) window.location.href = "giris.html";
+        return;
+      }
+      try {
+        await api('/uyelikler/', { method:'POST', body:{ kulup: clubId }, useAuth:true });
+        if (btn) {
+          btn.textContent = "Katıldın";
+          btn.disabled = true;
+          btn.classList.add('joined');
+        }
+        alert("Kulübe katıldın.");
+      } catch (e) {
+        alert("Katılma hatası: " + e.message);
+        if (String(e.message).includes('401')) {
+          clearTokens();
+          alert("Oturumun süresi dolmuş olabilir. Lütfen tekrar giriş yap.");
+          window.location.href = "giris.html";
+        }
+      }
+    }
+
+    function renderCard(k, joinedSet) {
+      const mapped = {
+        id: k.id,
+        name: k.ad || "İsimsiz Kulüp",
+        category: k.kategori || "",
+        description: k.aciklama || "",
+        manager: k.yonetici_adi || "-",
+        categoryClass: getCategoryClass(k.kategori),
+        categoryIcon: getCategoryIcon(k.kategori)
+      };
+      const alreadyJoined = joinedSet.has(mapped.id);
+
+      const card = document.createElement('div');
+      card.className = `kulup-card ${mapped.categoryClass}`;
+      card.innerHTML = `
+        <div class="kulup-header">
+          <div class="kulup-icon icon-${mapped.categoryIcon}"></div>
+          <h3 class="kulup-name">${mapped.name}</h3>
+          <span class="kulup-category">${mapped.category}</span>
+        </div>
+        <div class="kulup-content">
+          <p class="kulup-description">${mapped.description}</p>
+          <div class="kulup-meta">
+            <div class="kulup-manager">
+              <i class="fas fa-user-tie"></i>
+              <span>Yönetici: ${mapped.manager}</span>
+            </div>
+          </div>
+          <div class="kulup-actions">
+            <button class="kulup-btn btn-join ${alreadyJoined ? 'joined' : ''}" ${alreadyJoined ? 'disabled' : ''}>
+              <i class="fas fa-users"></i> ${alreadyJoined ? 'Katıldın' : 'Katıl'}
+            </button>
+            <button class="kulup-btn secondary"><i class="fas fa-info-circle"></i> Detay</button>
+          </div>
+        </div>
+      `;
+      const joinBtn = card.querySelector('.btn-join');
+      if (!alreadyJoined) joinBtn.addEventListener('click', () => joinClub(mapped.id, joinBtn));
+      return card;
+    }
+
+    async function renderClubs(filter='all') {
+      clubsContainer.innerHTML = '<p class="loading">Kulüpler yükleniyor...</p>';
+      try {
+        const [clubs, joinedSet] = await Promise.all([fetchClubs(), fetchMyClubIds()]);
+        clubsContainer.innerHTML = '';
+
+        const filtered = (clubs || []).filter(k => {
+          const cat = (k.kategori || '').toLowerCase();
+          return filter === 'all' || cat === String(filter).toLowerCase();
+        });
+
+        if (filtered.length === 0) {
+          clubsContainer.innerHTML = '<p class="empty">Bu kategoride kulüp bulunamadı.</p>';
+          return;
+        }
+        filtered.forEach(k => clubsContainer.appendChild(renderCard(k, joinedSet)));
+      } catch (e) {
+        console.error('[RENDER]', e);
+        clubsContainer.innerHTML =
+          `<pre class="error">Kulüpler yüklenemedi.\n\n${e.message}</pre>`;
+      }
+    }
+
+    categoryFilter.addEventListener('change', (e) => renderClubs(e.target.value));
+    renderClubs(); // ilk yükleme
+  });
+  </script>
+</body>
+</html>

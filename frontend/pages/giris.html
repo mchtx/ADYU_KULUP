@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Giriş Yap</title>
+  <link rel="stylesheet" href="../style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('../assets/images/loginback.png') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .auth-card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.2);
+      padding: 30px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .auth-card h1 { margin-top: 0; text-align: center; }
+    .form-row { display: flex; flex-direction: column; margin-bottom: 15px; }
+    .form-row label { font-weight: 600; margin-bottom: 6px; }
+    .form-row input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+    .btn {
+      padding: 12px; border: 0; border-radius: 8px;
+      background:#3498db; color:#fff; cursor:pointer; width: 100%;
+    }
+    .btn:disabled{opacity:.6;cursor:not-allowed}
+    .err{color:#c0392b;margin:8px 0;display:none}
+    .muted{color:#666;text-align:center}
+    .info{background:#ecf9f1;color:#1d6f42;border:1px solid #b7ebc6;border-radius:8px;padding:10px;display:none;margin-bottom:12px}
+  </style>
+</head>
+<body>
+  <div class="auth-card">
+    <h1>Giriş Yap</h1>
+    <div id="justRegistered" class="info">Kayıt başarılı! Şimdi giriş yapabilirsiniz.</div>
+    <form id="loginForm">
+      <div class="form-row">
+        <label for="username">Kullanıcı adı</label>
+        <input id="username" name="username" required />
+      </div>
+      <div class="form-row">
+        <label for="password">Şifre</label>
+        <input id="password" name="password" type="password" required />
+      </div>
+      <button class="btn" id="btnLogin" type="submit">Giriş Yap</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+    <p class="muted">
+      Hesabın yok mu? <a href="uye-ol.html">Üye ol</a>
+    </p>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000/api";
+    const setToken = t => localStorage.setItem("access_token", t);
+
+    async function login(username, password){
+      const res = await fetch(API_BASE + "/auth/login/", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data.detail || data.error || res.statusText);
+      return data;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('registered') === '1') {
+        document.getElementById('justRegistered').style.display = 'block';
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const btn = document.getElementById('btnLogin');
+      const err = document.getElementById('loginErr');
+      err.style.display='none'; err.textContent='';
+      btn.disabled = true;
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      try{
+        const tokens = await login(username, password);
+        setToken(tokens.access);
+        window.location.href = "profil.html";
+      }catch(ex){
+        err.textContent = "Giriş hatası: " + ex.message;
+        err.style.display = 'block';
+      }finally{
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
